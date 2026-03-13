@@ -5,6 +5,7 @@
 <title>Slot Training</title>
 
 <style>
+
 body{
 background:#111;
 color:white;
@@ -13,19 +14,29 @@ text-align:center;
 margin-top:60px;
 }
 
-h1{
-margin-bottom:20px;
+button{
+padding:12px 30px;
+font-size:18px;
+margin:8px;
+border:none;
+border-radius:8px;
+background:#00c853;
+color:white;
+cursor:pointer;
 }
 
-#balance{
-font-size:20px;
-margin-bottom:20px;
+button:hover{
+background:#00a844;
+}
+
+.hidden{
+display:none;
 }
 
 .slot{
 font-size:60px;
-letter-spacing:15px;
-margin:20px;
+letter-spacing:12px;
+margin:25px;
 }
 
 .reel{
@@ -33,64 +44,158 @@ display:inline-block;
 width:70px;
 }
 
-button{
-padding:12px 30px;
-font-size:18px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-margin:5px;
+#balance{
+font-size:20px;
+margin:10px;
 }
 
-#spin{
-background:#00c853;
-color:white;
-}
-
-#spin:hover{
-background:#00a844;
-}
-
-#bet{
-width:70px;
-font-size:18px;
-text-align:center;
-}
-
-#result{
-margin-top:20px;
-font-size:22px;
-}
 </style>
 </head>
 
 <body>
 
+<!-- MENU -->
+<div id="menu">
+
 <h1>🎰 Slot Training</h1>
 
-<div id="balance">Saldo: $1000</div>
+<button onclick="startGame()">START</button><br>
+<button onclick="openOptions()">OPTIONS</button>
 
-<div>
-Taruhan: 
-<input id="bet" type="number" value="10" min="1">
 </div>
 
+
+<!-- OPTIONS -->
+<div id="options" class="hidden">
+
+<h1>Options</h1>
+
+<p>Sound: <span id="soundStatus">ON</span></p>
+<button onclick="toggleSound()">Toggle Sound</button>
+
+<p>Peluang Menang</p>
+
+<select id="winRate">
+<option value="0.1">Rendah</option>
+<option value="0.2">Sedang</option>
+<option value="0.35">Tinggi</option>
+</select>
+
+<br><br>
+
+<button onclick="saveOptions()">SAVE</button>
+<button onclick="backMenu()">BACK</button>
+
+</div>
+
+
+<!-- GAME -->
+<div id="game" class="hidden">
+
+<h1>🎰 Slot Game</h1>
+
+<div id="balance"></div>
+
+Taruhan
+<input id="bet" type="number" value="10" min="1">
+
 <div class="slot">
+
 <span class="reel" id="r1">🍒</span>
 <span class="reel" id="r2">🍋</span>
 <span class="reel" id="r3">🍉</span>
 <span class="reel" id="r4">⭐</span>
 <span class="reel" id="r5">💎</span>
+
 </div>
 
-<button id="spin" onclick="spin()">SPIN</button>
+<button onclick="spin()">SPIN</button>
+<button onclick="exitGame()">EXIT</button>
 
-<div id="result"></div>
+<p id="result"></p>
+
+</div>
 
 <script>
 
 let symbols=["🍒","🍋","🍉","⭐","💎","7️⃣"];
+
 let balance=1000;
+let sound=true;
+let winChance=0.2;
+
+loadSave();
+
+function show(id){
+
+document.getElementById("menu").classList.add("hidden");
+document.getElementById("options").classList.add("hidden");
+document.getElementById("game").classList.add("hidden");
+
+document.getElementById(id).classList.remove("hidden");
+
+}
+
+function startGame(){
+updateBalance();
+show("game");
+}
+
+function openOptions(){
+show("options");
+}
+
+function backMenu(){
+show("menu");
+}
+
+function exitGame(){
+show("menu");
+}
+
+function toggleSound(){
+
+sound=!sound;
+
+document.getElementById("soundStatus").innerText =
+sound ? "ON" : "OFF";
+
+}
+
+function saveOptions(){
+
+winChance=parseFloat(document.getElementById("winRate").value);
+
+localStorage.setItem("slotWinChance",winChance);
+localStorage.setItem("slotSound",sound);
+
+alert("Pengaturan disimpan");
+
+backMenu();
+
+}
+
+function loadSave(){
+
+let savedBalance=localStorage.getItem("slotBalance");
+
+if(savedBalance){
+balance=parseInt(savedBalance);
+}
+
+let savedChance=localStorage.getItem("slotWinChance");
+
+if(savedChance){
+winChance=parseFloat(savedChance);
+}
+
+let savedSound=localStorage.getItem("slotSound");
+
+if(savedSound){
+sound=savedSound==="true";
+}
+
+}
 
 function randomSymbol(){
 return symbols[Math.floor(Math.random()*symbols.length)];
@@ -106,6 +211,7 @@ return;
 }
 
 balance-=bet;
+
 updateBalance();
 
 let reels=["r1","r2","r3","r4","r5"];
@@ -120,10 +226,11 @@ document.getElementById(id).innerText=randomSymbol();
 
 spinCount++;
 
-if(spinCount>10){
+if(spinCount>12){
 
 clearInterval(interval);
-checkWin(bet);
+
+generateResult(bet);
 
 }
 
@@ -131,39 +238,52 @@ checkWin(bet);
 
 }
 
-function checkWin(bet){
+function generateResult(bet){
 
-let r1=document.getElementById("r1").innerText;
-let r2=document.getElementById("r2").innerText;
-let r3=document.getElementById("r3").innerText;
-let r4=document.getElementById("r4").innerText;
-let r5=document.getElementById("r5").innerText;
+let win=Math.random()<winChance;
 
-let result="Coba lagi";
+if(win){
 
-if(r1==r2 && r2==r3){
-balance+=bet*3;
-result="Menang x3!";
+let symbol=randomSymbol();
+
+document.getElementById("r1").innerText=symbol;
+document.getElementById("r2").innerText=symbol;
+document.getElementById("r3").innerText=symbol;
+
+let multiplier=3;
+
+if(Math.random()<0.4){
+document.getElementById("r4").innerText=symbol;
+multiplier=6;
 }
 
-if(r1==r2 && r2==r3 && r3==r4){
-balance+=bet*6;
-result="Menang x6!";
+if(Math.random()<0.2){
+document.getElementById("r5").innerText=symbol;
+multiplier=10;
 }
 
-if(r1==r2 && r2==r3 && r3==r4 && r4==r5){
-balance+=bet*10;
-result="JACKPOT x10!";
-}
+balance+=bet*multiplier;
 
-document.getElementById("result").innerText=result;
+document.getElementById("result").innerText=
+"Menang x"+multiplier;
+
+}else{
+
+document.getElementById("result").innerText="Coba lagi";
+
+}
 
 updateBalance();
 
 }
 
 function updateBalance(){
-document.getElementById("balance").innerText="Saldo: $"+balance;
+
+document.getElementById("balance").innerText=
+"Saldo: $"+balance;
+
+localStorage.setItem("slotBalance",balance);
+
 }
 
 </script>
