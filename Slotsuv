@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Slot Training</title>
+
+<style>
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+margin-top:60px;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+#balance{
+font-size:20px;
+margin-bottom:20px;
+}
+
+.slot{
+font-size:60px;
+letter-spacing:15px;
+margin:20px;
+}
+
+.reel{
+display:inline-block;
+width:70px;
+}
+
+button{
+padding:12px 30px;
+font-size:18px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+margin:5px;
+}
+
+#spin{
+background:#00c853;
+color:white;
+}
+
+#spin:hover{
+background:#00a844;
+}
+
+#bet{
+width:70px;
+font-size:18px;
+text-align:center;
+}
+
+#result{
+margin-top:20px;
+font-size:22px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎰 Slot Training</h1>
+
+<div id="balance">Saldo: $1000</div>
+
+<div>
+Taruhan: 
+<input id="bet" type="number" value="10" min="1">
+</div>
+
+<div class="slot">
+<span class="reel" id="r1">🍒</span>
+<span class="reel" id="r2">🍋</span>
+<span class="reel" id="r3">🍉</span>
+<span class="reel" id="r4">⭐</span>
+<span class="reel" id="r5">💎</span>
+</div>
+
+<button id="spin" onclick="spin()">SPIN</button>
+
+<div id="result"></div>
+
+<script>
+
+let symbols=["🍒","🍋","🍉","⭐","💎","7️⃣"];
+let balance=1000;
+
+function randomSymbol(){
+return symbols[Math.floor(Math.random()*symbols.length)];
+}
+
+function spin(){
+
+let bet=parseInt(document.getElementById("bet").value);
+
+if(bet>balance){
+document.getElementById("result").innerText="Saldo tidak cukup!";
+return;
+}
+
+balance-=bet;
+updateBalance();
+
+let reels=["r1","r2","r3","r4","r5"];
+
+let spinCount=0;
+
+let interval=setInterval(()=>{
+
+reels.forEach(id=>{
+document.getElementById(id).innerText=randomSymbol();
+});
+
+spinCount++;
+
+if(spinCount>10){
+
+clearInterval(interval);
+checkWin(bet);
+
+}
+
+},100);
+
+}
+
+function checkWin(bet){
+
+let r1=document.getElementById("r1").innerText;
+let r2=document.getElementById("r2").innerText;
+let r3=document.getElementById("r3").innerText;
+let r4=document.getElementById("r4").innerText;
+let r5=document.getElementById("r5").innerText;
+
+let result="Coba lagi";
+
+if(r1==r2 && r2==r3){
+balance+=bet*3;
+result="Menang x3!";
+}
+
+if(r1==r2 && r2==r3 && r3==r4){
+balance+=bet*6;
+result="Menang x6!";
+}
+
+if(r1==r2 && r2==r3 && r3==r4 && r4==r5){
+balance+=bet*10;
+result="JACKPOT x10!";
+}
+
+document.getElementById("result").innerText=result;
+
+updateBalance();
+
+}
+
+function updateBalance(){
+document.getElementById("balance").innerText="Saldo: $"+balance;
+}
+
+</script>
+
+</body>
+</html>
